@@ -1,0 +1,9 @@
+{
+  "name": "SafePath AI hari",
+  "description": "An innovative web-based AR navigation platform for the visually impaired, providing real-time spatial awareness, AI voice assistance, and spatial audio guidance.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
