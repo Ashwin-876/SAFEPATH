@@ -25,7 +25,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
-            tensorflow: ['@tensorflow/tfjs', '@tensorflow-models/coco-ssd'],
             agora: ['agora-rtc-sdk-ng']
           }
         }
