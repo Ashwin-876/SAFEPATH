@@ -1,9 +1,11 @@
 import OpenAI from 'openai';
 
-// The API key is obtained from the environment variable process.env.API_KEY.
+// The API key is obtained from the environment variable.
 // We use OpenRouter as the provider.
+const apiKey = import.meta.env.GEMINI_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY || 'MISSING_API_KEY';
+
 const openai = new OpenAI({
-  apiKey: process.env.API_KEY,
+  apiKey: apiKey,
   baseURL: 'https://openrouter.ai/api/v1',
   dangerouslyAllowBrowser: true // Enabling client-side usage as per existing project structure
 });
