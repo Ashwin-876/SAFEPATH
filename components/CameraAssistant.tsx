@@ -127,6 +127,8 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
 
           if (data && data.objects.length > 0) {
             setDetections(data.objects);
+            // ... (rest of processing logic is same, but simpler to just re-implement the block or assume user keeps it if I only edit the ELSE)
+            // Wait, replace_file_content replaces the whole block. I need to be careful.
 
             // Prioritize most critical feedback
             const highSeverityItem = data.objects.find(o => o.severity === 'high');
@@ -136,10 +138,8 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
             if (displayItem && !window.speechSynthesis.speaking) {
               const pan = displayItem.direction === 'left' ? -1 : displayItem.direction === 'right' ? 1 : 0;
               const spokenDir = displayItem.direction === 'center' ? 'ahead' : `on the ${displayItem.direction}`;
-
               let feedback = `${displayItem.label} ${spokenDir}`;
 
-              // Immediate emergency pattern check
               if (displayItem.severity === 'high' && displayItem.proximity === 'near' && displayItem.direction === 'center') {
                 feedback = "Obstacle in front, stop";
                 spatialAudio.playDirectionalPing(0);
@@ -151,9 +151,14 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
               spatialAudio.speak(feedback, pan);
               setInstruction(feedback.toUpperCase());
             }
-          } else {
+          } else if (data && data.objects.length === 0) {
+            // Successful Scan, but empty
             setDetections([]);
             setInstruction("PATH CLEAR");
+          } else {
+            // NULL means error
+            setDetections([]);
+            setInstruction("CONNECTION ERROR - RETRYING");
           }
         }
         setIsAnalyzing(false);

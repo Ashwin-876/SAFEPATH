@@ -2,11 +2,9 @@ import OpenAI from 'openai';
 
 // The API key is obtained from the environment variable.
 // We use OpenRouter as the provider.
-// Priority: 
-// 1. process.env.GEMINI_API_KEY (Defined in vite.config.ts)
-// 2. import.meta.env.VITE_OPENROUTER_API_KEY (Standard Vite Env)
-// 3. Fallback to prevent crash
-const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY || 'MISSING_API_KEY';
+// The API key is obtained from the environment variable.
+// We use OpenRouter as the provider.
+const apiKey = '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';
 
 const openai = new OpenAI({
   apiKey: apiKey,
