@@ -223,8 +223,8 @@ const CaregiverPortal: React.FC = () => {
   return (
     <div className="flex flex-col h-full w-full bg-[#f8fafc] overflow-y-auto overflow-x-hidden">
 
-      {/* Scrollable Container with Padding */}
-      <div className="flex flex-col gap-6 p-6 min-h-full">
+      {/* Scrollable Container - No Padding for Full Width Map */}
+      <div className="flex flex-col min-h-full">
 
         {/* Emergency Overlay - Fixed relative to viewport */}
         {showEmergencyModal && (
@@ -244,8 +244,8 @@ const CaregiverPortal: React.FC = () => {
           </div>
         )}
 
-        {/* Main Map Box Container - Large Fixed Height */}
-        <div className="flex-none w-full h-[75vh] min-h-[500px] relative rounded-[3rem] shadow-2xl overflow-hidden border-[8px] border-white ring-1 ring-slate-900/5 bg-slate-100 transition-all duration-300" ref={mapWrapperRef}>
+        {/* Main Map Box Container - Fullscreen 100vh */}
+        <div className="flex-none w-full h-[100vh] relative overflow-hidden bg-slate-100 transition-all duration-300" ref={mapWrapperRef}>
 
           <MapContainer
             center={[user.location.lat, user.location.lng]}
@@ -386,8 +386,8 @@ const CaregiverPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* DASHBOARD DETAILS SECTION */}
-        <div className="w-full max-w-7xl mx-auto space-y-6 animate-fade-in-up">
+        {/* DASHBOARD DETAILS SECTION - Below the fold */}
+        <div className="w-full max-w-7xl mx-auto space-y-6 animate-fade-in-up p-6 lg:p-10 relative z-10 bg-[#f8fafc]">
 
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
