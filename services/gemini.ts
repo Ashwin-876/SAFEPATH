@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 // We use OpenRouter as the provider.
 // The API key is obtained from the environment variable.
 // We use OpenRouter as the provider.
-const apiKey = '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';
+const apiKey = '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';
 
 const openai = new OpenAI({
   apiKey: apiKey,
