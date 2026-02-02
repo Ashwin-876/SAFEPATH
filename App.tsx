@@ -1,16 +1,52 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { NavState, UserPreferences, Coordinates, LocationRecord } from './types';
-import Dashboard from './components/Dashboard';
-import RoutePlanner from './components/RoutePlanner';
-import CameraAssistant from './components/CameraAssistant';
-import CaregiverPortal from './components/CaregiverPortal';
-import Settings from './components/Settings';
-import CommunityReports from './components/CommunityReports';
-import EmergencyHUD from './components/EmergencyHUD';
-import IndoorNavigation from './components/IndoorNavigation';
+const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const RoutePlanner = React.lazy(() => import('./components/RoutePlanner'));
+const CameraAssistant = React.lazy(() => import('./components/CameraAssistant'));
+const CaregiverPortal = React.lazy(() => import('./components/CaregiverPortal'));
+const Settings = React.lazy(() => import('./components/Settings'));
+const CommunityReports = React.lazy(() => import('./components/CommunityReports'));
+const EmergencyHUD = React.lazy(() => import('./components/EmergencyHUD'));
+const IndoorNavigation = React.lazy(() => import('./components/IndoorNavigation'));
 import Header from './components/Header';
-import VoiceController from './components/VoiceController';
+const VoiceController = React.lazy(() => import('./components/VoiceController'));
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6 text-center">
+          <h1 className="text-3xl font-bold text-red-500 mb-4">Something went wrong.</h1>
+          <pre className="bg-slate-800 p-4 rounded text-left text-xs text-red-300 w-full max-w-lg overflow-auto">
+            {this.state.error?.toString()}
+          </pre>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-8 px-6 py-3 bg-blue-600 rounded-xl font-bold"
+          >
+            Reload Application
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 
 const App: React.FC = () => {
@@ -184,46 +220,50 @@ const App: React.FC = () => {
       )}
 
       <main className={`flex-1 relative ${isNavigableScreen && currentState !== NavState.EMERGENCY ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-        {currentState === NavState.HOME && <Dashboard onAction={navigateTo} history={locationHistory} />}
-        {currentState === NavState.PLANNING && (
-          <RoutePlanner
-            preferences={preferences}
-            onStartNavigation={() => navigateTo(NavState.NAVIGATING)}
-            onNavigate={navigateTo}
-            gpsActive={gpsActive}
-            currentLocation={currentLocation}
-            initialDestination={voiceDestination}
-            isListening={isVoiceListening}
-            interimText={voiceInterimText}
-            onStartVoice={toggleGlobalVoice}
-          />
-        )}
-        {currentState === NavState.NAVIGATING && <CameraAssistant onStop={() => navigateTo(NavState.HOME)} preferences={preferences} />}
-        {currentState === NavState.CAREGIVER && <CaregiverPortal />}
-        {currentState === NavState.SETTINGS && <Settings preferences={preferences} setPreferences={setPreferences} />}
-        {currentState === NavState.COMMUNITY && <CommunityReports currentLocation={currentLocation} />}
-        {currentState === NavState.EMERGENCY && <EmergencyHUD onCancel={() => navigateTo(NavState.HOME)} currentLocation={currentLocation} />}
-        {currentState === NavState.INDOOR && <IndoorNavigation onBack={() => navigateTo(NavState.HOME)} />}
+        <ErrorBoundary>
+          <React.Suspense fallback={<div className="flex h-full items-center justify-center p-10"><h2 className="text-xl font-bold text-slate-400">Loading Module...</h2></div>}>
+            {currentState === NavState.HOME && <Dashboard onAction={navigateTo} history={locationHistory} />}
+            {currentState === NavState.PLANNING && (
+              <RoutePlanner
+                preferences={preferences}
+                onStartNavigation={() => navigateTo(NavState.NAVIGATING)}
+                onNavigate={navigateTo}
+                gpsActive={gpsActive}
+                currentLocation={currentLocation}
+                initialDestination={voiceDestination}
+                isListening={isVoiceListening}
+                interimText={voiceInterimText}
+                onStartVoice={toggleGlobalVoice}
+              />
+            )}
+            {currentState === NavState.NAVIGATING && <CameraAssistant onStop={() => navigateTo(NavState.HOME)} preferences={preferences} />}
+            {currentState === NavState.CAREGIVER && <CaregiverPortal />}
+            {currentState === NavState.SETTINGS && <Settings preferences={preferences} setPreferences={setPreferences} />}
+            {currentState === NavState.COMMUNITY && <CommunityReports currentLocation={currentLocation} />}
+            {currentState === NavState.EMERGENCY && <EmergencyHUD onCancel={() => navigateTo(NavState.HOME)} currentLocation={currentLocation} />}
+            {currentState === NavState.INDOOR && <IndoorNavigation onBack={() => navigateTo(NavState.HOME)} />}
 
-        {!(isNavigableScreen || currentState === NavState.PLANNING) && (
-          <>
-            <VoiceController
-              isExternalControlled
-              isListening={isVoiceListening}
-              onToggle={toggleGlobalVoice}
-            />
+            {!(isNavigableScreen || currentState === NavState.PLANNING) && (
+              <>
+                <VoiceController
+                  isExternalControlled
+                  isListening={isVoiceListening}
+                  onToggle={toggleGlobalVoice}
+                />
 
-            <button
-              onClick={() => navigateTo(NavState.EMERGENCY)}
-              className="fixed bottom-6 right-6 w-24 h-24 bg-[#dc2626] text-white rounded-full shadow-[0_15px_35px_rgba(220,38,38,0.4)] flex items-center justify-center hover:bg-red-700 active:scale-90 transition-all z-50 border-[6px] border-white"
-              aria-label="Activate Emergency Assistance"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </button>
-          </>
-        )}
+                <button
+                  onClick={() => navigateTo(NavState.EMERGENCY)}
+                  className="fixed bottom-6 right-6 w-24 h-24 bg-[#dc2626] text-white rounded-full shadow-[0_15px_35px_rgba(220,38,38,0.4)] flex items-center justify-center hover:bg-red-700 active:scale-90 transition-all z-50 border-[6px] border-white"
+                  aria-label="Activate Emergency Assistance"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </React.Suspense>
+        </ErrorBoundary>
       </main>
     </div>
   );
