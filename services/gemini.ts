@@ -2,17 +2,19 @@ import OpenAI from 'openai';
 
 // The API key is obtained from the environment variable.
 // We use OpenRouter as the provider.
-// The API key is obtained from the environment variable.
-// We use OpenRouter as the provider.
 const apiKey = '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';
 
 const openai = new OpenAI({
   apiKey: apiKey,
   baseURL: 'https://openrouter.ai/api/v1',
-  dangerouslyAllowBrowser: true // Enabling client-side usage as per existing project structure
+  dangerouslyAllowBrowser: true,
+  defaultHeaders: {
+    "HTTP-Referer": "https://safepathtrack.netlify.app", // Required for OpenRouter browser usage
+    "X-Title": "SafePath AI Tracking",
+  }
 });
 
-const MODEL = 'google/gemini-2.0-flash-exp:free'; // Using reliable OpenRouter slug
+const MODEL = 'google/gemini-2.0-flash-001'; // Stable non-free version (higher priority)
 
 export interface DetailedAnalysis {
   objects: Array<{
