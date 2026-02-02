@@ -12,7 +12,7 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true // Enabling client-side usage as per existing project structure
 });
 
-const MODEL = 'google/gemini-2.0-flash-001'; // Using a capable Gemini model via OpenRouter
+const MODEL = 'google/gemini-2.0-flash-exp:free'; // Using reliable OpenRouter slug
 
 export interface DetailedAnalysis {
   objects: Array<{
