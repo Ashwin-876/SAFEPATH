@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap, ZoomC
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { AgoraService } from '../services/AgoraService';
+import { getRoute } from '../services/openRouteService';
 
 // Fix for default leafet marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -146,26 +147,69 @@ const CaregiverPortal: React.FC = () => {
   const animationRef = useRef<number>();
   const lastLogTimeRef = useRef(Date.now());
 
+  // Path State
+  const [pathPositions, setPathPositions] = useState<[number, number][]>(SIMULATED_PATH as [number, number][]);
+  const [useRealRoute, setUseRealRoute] = useState(false);
+
+  useEffect(() => {
+    // Attempt to fetch a real route based on the loop points (Start -> Turn Point -> Home)
+    const fetchRealRoute = async () => {
+      try {
+        const start = { lat: SIMULATED_PATH[0][0], lng: SIMULATED_PATH[0][1] };
+        const mid = { lat: SIMULATED_PATH[4][0], lng: SIMULATED_PATH[4][1] };
+
+        // Fetch path to the turning point
+        const routeOut = await getRoute(start, mid);
+
+        if (routeOut && routeOut.length > 0) {
+          // For closure, just reverse it to come back
+          const routeBack = [...routeOut].reverse();
+          const fullLoop = [...routeOut, ...routeBack];
+          setPathPositions(fullLoop as [number, number][]);
+          setUseRealRoute(true);
+          console.log("Using Real OpenRouteService Path:", fullLoop.length, "points");
+        }
+      } catch (err) {
+        console.warn("Failed to retrieve real route, using simulation.", err);
+      }
+    };
+
+    fetchRealRoute();
+  }, []);
+
   useEffect(() => {
     alertAudio.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
   }, []);
 
   // Smooth Movement Animation Loop
   useEffect(() => {
+    // If we have a very long path (real route), we speed it up
+    const speed = useRealRoute ? 0.02 : 0.003;
+
+    // Safety check
+    const currentPath = pathPositions.length > 1 ? pathPositions : SIMULATED_PATH;
+    const maxIndex = currentPath.length - 1;
+
     const animate = () => {
-      // Move user along SIMULATED_PATH
-      const speed = 0.003; // Slightly slower for better tracking demo
       progressBetweenPointsRef.current += speed;
 
       if (progressBetweenPointsRef.current >= 1) {
         progressBetweenPointsRef.current = 0;
-        pathIndexRef.current = (pathIndexRef.current + 1) % (SIMULATED_PATH.length - 1);
+        pathIndexRef.current = (pathIndexRef.current + 1);
+
+        // Loop restart logic
+        if (pathIndexRef.current >= maxIndex) {
+          pathIndexRef.current = 0;
+        }
       }
 
-      const currentPoint = SIMULATED_PATH[pathIndexRef.current];
-      const nextPoint = SIMULATED_PATH[pathIndexRef.current + 1];
+      const currentIndex = pathIndexRef.current;
+      const nextIndex = (currentIndex + 1) % currentPath.length; // Safe wrap
 
-      // Interpolate
+      const currentPoint = currentPath[currentIndex];
+      const nextPoint = currentPath[nextIndex];
+
+      // Standard Linear Interpolation
       const lat = currentPoint[0] + (nextPoint[0] - currentPoint[0]) * progressBetweenPointsRef.current;
       const lng = currentPoint[1] + (nextPoint[1] - currentPoint[1]) * progressBetweenPointsRef.current;
 
@@ -194,7 +238,7 @@ const CaregiverPortal: React.FC = () => {
           ...prev,
           location: { lat, lng },
           status: status,
-          progress: ((pathIndexRef.current + progressBetweenPointsRef.current) / SIMULATED_PATH.length) * 100
+          progress: ((pathIndexRef.current + progressBetweenPointsRef.current) / maxIndex) * 100
         };
       });
 
@@ -205,7 +249,7 @@ const CaregiverPortal: React.FC = () => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [safeZones]);
+  }, [safeZones, pathPositions, useRealRoute]);
 
   const triggerSOS = () => {
     setUser(u => ({ ...u, isEmergency: true }));
@@ -289,7 +333,7 @@ const CaregiverPortal: React.FC = () => {
             {/* Planned/History Path */}
             {showHistory && (
               <Polyline
-                positions={SIMULATED_PATH as L.LatLngExpression[]}
+                positions={pathPositions as L.LatLngExpression[]}
                 pathOptions={{ color: '#64748b', weight: 4, opacity: 0.4, lineCap: 'round', dashArray: '5, 10' }}
               />
             )}
