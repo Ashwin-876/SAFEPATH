@@ -163,7 +163,7 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
         }
         setIsAnalyzing(false);
       }
-    }, 3000); // 3-second cycle for balance of battery and responsiveness
+    }, 6000); // 6-second cycle to stay within API rate limits
 
     return () => clearInterval(interval);
   }, [isAnalyzing, isListening]);

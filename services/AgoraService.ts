@@ -2,7 +2,7 @@
 import AgoraRTC, { IAgoraRTCClient, IMicrophoneAudioTrack } from "agora-rtc-sdk-ng";
 
 // TODO: Replace with your actual Agora App ID
-const APP_ID = "09470838be104240bcaede1829fd7815";
+const APP_ID = "";
 const CHANNEL_NAME = "emergency-channel";
 // Token is optional if testing in "App ID only" mode, otherwise you need a token server.
 // For this demo, we assume "App ID only" or user provides a temp token.
