@@ -1,7 +1,7 @@
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
-exports.handler = async function (event, context) {
+export const handler = async function (event, context) {
     // Only allow POST
     if (event.httpMethod !== "POST") {
         return { statusCode: 405, body: "Method Not Allowed" };
@@ -31,7 +31,7 @@ exports.handler = async function (event, context) {
         const data = await response.json();
 
         if (!response.ok) {
-            console.error("OpenRouter Upstream Error:", response.status, await response.clone().text());
+            console.error("OpenRouter Upstream Error:", response.status, JSON.stringify(data));
             return {
                 statusCode: response.status,
                 body: JSON.stringify(data)
