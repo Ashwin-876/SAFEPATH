@@ -58,6 +58,13 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
       return null;
     }
 
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("SafePath API Error: Received non-JSON response. Check your local server/proxy settings.", text.substring(0, 100));
+      return null;
+    }
+
     const data = await response.json();
     console.log("SafePath API Response:", data); // DEBUG
 
@@ -102,6 +109,11 @@ export const askGeminiAboutImage = async (base64Image: string, question: string)
         ]
       })
     });
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Gemini Q&A: Received non-JSON response");
+      return "I couldn't identify that. (Connection Error)";
+    }
     const data = await response.json();
     return data.choices?.[0]?.message?.content || "I couldn't identify that.";
   } catch (error) {
@@ -121,6 +133,10 @@ export const generateCaregiverBriefing = async (userName: string, status: string
         messages: [{ role: "user", content: prompt }]
       })
     });
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      return "Monitoring active. Path currently safe. (Sync Error)";
+    }
     const data = await response.json();
     return data.choices?.[0]?.message?.content || "Monitoring active. Path currently safe.";
   } catch (error) {
@@ -154,6 +170,10 @@ export const describeSurroundings = async (base64Image: string) => {
         ]
       })
     });
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      return "Scanning failed. (Server Error)";
+    }
     const data = await response.json();
     return data.choices?.[0]?.message?.content || "Scanning failed.";
   } catch (error) {
@@ -174,6 +194,11 @@ export const generateSmartRoute = async (destination: string, preferences: any) 
         response_format: { type: "json_object" }
       })
     });
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Received non-JSON response from server");
+    }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
