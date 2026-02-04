@@ -17,14 +17,21 @@ export interface DetailedAnalysis {
 
 export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysis | null> => {
   try {
+    const headers = {
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://safepathtrack.netlify.app",
+      "X-Title": "SafePath AI Tracking",
+    };
+
+    // DEBUG: Check key prefix
+    if (!API_KEY.startsWith("sk-or-v1")) {
+      console.error("INVALID API KEY FORMAT. Must start with sk-or-v1");
+    }
+
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://safepathtrack.netlify.app",
-        "X-Title": "SafePath AI Tracking",
-      },
+      headers: headers,
       body: JSON.stringify({
         model: MODEL,
         messages: [
