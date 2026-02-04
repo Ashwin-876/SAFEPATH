@@ -63,9 +63,16 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
     }
 
     const data = await response.json();
+    console.log("SafePath API Response:", data); // DEBUG
+
     const content = data.choices?.[0]?.message?.content;
 
-    if (!content) return null;
+    if (!content) {
+      console.error("SafePath Error: No content in response", data);
+      return null;
+    }
+
+    console.log("SafePath Raw Content:", content); // DEBUG
 
     const cleanContent = content.replace(/```json\n?|\n?```/g, "").trim();
     return JSON.parse(cleanContent) as DetailedAnalysis;
