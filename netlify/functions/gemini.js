@@ -31,6 +31,7 @@ exports.handler = async function (event, context) {
         const data = await response.json();
 
         if (!response.ok) {
+            console.error("OpenRouter Upstream Error:", response.status, await response.clone().text());
             return {
                 statusCode: response.status,
                 body: JSON.stringify(data)
