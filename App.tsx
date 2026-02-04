@@ -57,6 +57,12 @@ const App: React.FC = () => {
     audioFeedbackLevel: 'high',
     language: 'en-US',
     vibrationFeedback: true,
+    routePreference: 'safest',
+    obstacleSensitivity: 'medium',
+    voiceSpeed: 'normal',
+    mapStyle: 'standard',
+    darkMode: true,
+    notificationsEnabled: true,
   });
 
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);

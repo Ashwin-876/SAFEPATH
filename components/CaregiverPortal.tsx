@@ -144,7 +144,7 @@ const CaregiverPortal: React.FC = () => {
   // Animation State
   const pathIndexRef = useRef(0);
   const progressBetweenPointsRef = useRef(0);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const lastLogTimeRef = useRef(Date.now());
 
   // Path State
