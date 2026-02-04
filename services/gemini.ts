@@ -1,7 +1,7 @@
 
 
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// Relative path to support both Local Proxy and Netlify Functions
+const BASE_URL = '/api/gemini';
 const MODEL = 'google/gemini-2.0-flash-001';
 
 export interface DetailedAnalysis {
@@ -17,16 +17,10 @@ export interface DetailedAnalysis {
 
 export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysis | null> => {
   try {
-    const headers = {
-      "Authorization": `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://safepathtrack.netlify.app",
-      "X-Title": "SafePath AI Tracking",
-    };
-
+    // No headers or keys here. Pure Proxy call.
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
         messages: [
@@ -86,12 +80,7 @@ export const askGeminiAboutImage = async (base64Image: string, question: string)
   try {
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://safepathtrack.netlify.app",
-        "X-Title": "SafePath AI Tracking",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
         messages: [
@@ -126,10 +115,7 @@ export const generateCaregiverBriefing = async (userName: string, status: string
     const prompt = `Generate a 2-sentence safety briefing for a caregiver monitoring ${userName}. Status: ${status}. Detected: ${recentObjects.join(', ')}.`;
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
         messages: [{ role: "user", content: prompt }]
@@ -146,10 +132,7 @@ export const describeSurroundings = async (base64Image: string) => {
   try {
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
         messages: [
@@ -184,10 +167,7 @@ export const generateSmartRoute = async (destination: string, preferences: any) 
 
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
         messages: [{ role: "user", content: fixedPrompt }],
