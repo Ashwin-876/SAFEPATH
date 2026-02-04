@@ -1,5 +1,4 @@
 
-
 // Relative path to support both Local Proxy and Netlify Functions
 const BASE_URL = '/.netlify/functions/gemini';
 const MODEL = 'google/gemini-2.0-flash-001';
@@ -55,14 +54,14 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("OpenRouter API Error:", response.status, response.statusText, errorData);
-      return null;
+      return { objects: [], sceneSummary: `API ERROR: ${response.status} ${response.statusText}` };
     }
 
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
       console.error("SafePath API Error: Received non-JSON response. Check your local server/proxy settings.", text.substring(0, 100));
-      return null;
+      return { objects: [], sceneSummary: "PROXY ERROR: Non-JSON Response" };
     }
 
     const data = await response.json();
@@ -72,14 +71,16 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
 
     if (!content) {
       console.error("SafePath Error: No content in response", data);
-      return null;
+      // Check for provider specific errors inside 200 OK
+      if (data.error) return { objects: [], sceneSummary: `API ERROR: ${data.error.message || 'Unknown'}` };
+      return { objects: [], sceneSummary: "API ERROR: Empty Response" };
     }
 
     const cleanContent = content.replace(/```json\n?|\n?```/g, "").trim();
     return JSON.parse(cleanContent) as DetailedAnalysis;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Analysis Request Failed:", error);
-    return null;
+    return { objects: [], sceneSummary: `NET ERROR: ${error.message || 'Check Console'}` };
   }
 };
 
@@ -223,4 +224,3 @@ export const generateSmartRoute = async (destination: string, preferences: any) 
     ];
   }
 }
-

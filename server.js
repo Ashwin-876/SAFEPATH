@@ -32,18 +32,22 @@ app.post("/.netlify/functions/gemini", async (req, res) => {
                 "X-Title": "SafePath Local Dev"
             },
             body: JSON.stringify(req.body)
-        }
-        );
+        });
 
         const data = await response.json();
+
+        if (!response.ok) {
+            console.error("OpenRouter API Error:", JSON.stringify(data));
+        }
+
         res.status(response.status).json(data);
 
     } catch (error) {
         console.error("Local Proxy Error:", error);
-        res.status(500).json({ error: "Internal Proxy Error" });
+        res.status(500).json({ error: "Internal Proxy Error: " + error.message });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Local Secure Proxy running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Local Secure Proxy running on http://0.0.0.0:${PORT}`);
 });

@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { analyzeScene, askGeminiAboutImage, DetailedAnalysis } from '../services/gemini';
+import { detectObjectsBytez } from '../services/bytez';
 import { spatialAudio } from '../services/spatialAudio';
 import { UserPreferences } from '../types';
 
@@ -18,6 +19,9 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
   const [instruction, setInstruction] = useState("Initializing SafePath...");
   const [lowLightWarning, setLowLightWarning] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+
+  // Track last spoken alert to prevent repetition
+  const lastSpokenRef = useRef<{ text: string, time: number } | null>(null);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -102,18 +106,20 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
     }
   }, [isAnalyzing]);
 
+  // Main Detection Loop (Hybrid: Bytez Fast Scan)
   useEffect(() => {
     const interval = setInterval(async () => {
       if (videoRef.current && !isAnalyzing && !isListening) {
-        setIsAnalyzing(true);
 
         const canvas = document.createElement('canvas');
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
         const ctx = canvas.getContext('2d');
+
         if (ctx && canvas.width > 0) {
           ctx.drawImage(videoRef.current, 0, 0);
 
+          // 1. Low Light Check
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           let brightness = 0;
           for (let i = 0; i < imageData.data.length; i += 4) {
@@ -122,48 +128,87 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
           brightness /= (canvas.width * canvas.height);
           setLowLightWarning(brightness < 30);
 
-          const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
-          const data = await analyzeScene(base64);
+          // 2. Fast Detection using Bytez
+          const imageInput = canvas.toDataURL('image/jpeg', 0.5);
 
-          if (data && data.objects.length > 0) {
-            setDetections(data.objects);
-            // ... (rest of processing logic is same, but simpler to just re-implement the block or assume user keeps it if I only edit the ELSE)
-            // Wait, replace_file_content replaces the whole block. I need to be careful.
+          try {
+            const results = await detectObjectsBytez(imageInput);
 
-            // Prioritize most critical feedback
-            const highSeverityItem = data.objects.find(o => o.severity === 'high');
-            const nearItem = data.objects.find(o => o.proximity === 'near');
-            const displayItem = highSeverityItem || nearItem || data.objects[0];
+            // 3. Map Bytez Results to SafePath DetailedAnalysis format
+            const mappedObjects: DetailedAnalysis['objects'] = results.map(r => {
+              const isNormalized = r.box.xmax <= 1.0;
+              const width = isNormalized ? 1.0 : canvas.width;
 
-            if (displayItem && !window.speechSynthesis.speaking) {
-              const pan = displayItem.direction === 'left' ? -1 : displayItem.direction === 'right' ? 1 : 0;
-              const spokenDir = displayItem.direction === 'center' ? 'ahead' : `on the ${displayItem.direction}`;
-              let feedback = `${displayItem.label} ${spokenDir}`;
+              const centerX = (r.box.xmin + r.box.xmax) / 2;
+              const ratio = centerX / width;
 
-              if (displayItem.severity === 'high' && displayItem.proximity === 'near' && displayItem.direction === 'center') {
-                feedback = "Obstacle in front, stop";
-                spatialAudio.playDirectionalPing(0);
-                setTimeout(() => spatialAudio.playDirectionalPing(0), 120);
-              } else {
-                spatialAudio.playDirectionalPing(pan);
+              let direction: 'left' | 'center' | 'right' = 'center';
+              if (ratio < 0.33) direction = 'left';
+              else if (ratio > 0.66) direction = 'right';
+
+              const highSeverity = ['car', 'truck', 'bus', 'train', 'fire', 'person'];
+              const mediumSeverity = ['bicycle', 'motorcycle', 'dog', 'chair', 'couch', 'tv'];
+              let severity: 'low' | 'medium' | 'high' = 'low';
+              if (highSeverity.includes(r.label.toLowerCase())) severity = 'high';
+              else if (mediumSeverity.includes(r.label.toLowerCase())) severity = 'medium';
+
+              const boxArea = (r.box.xmax - r.box.xmin) * (r.box.ymax - r.box.ymin);
+              const imgArea = isNormalized ? 1.0 : (canvas.width * canvas.height);
+              const coverage = boxArea / imgArea;
+
+              const proximity: 'near' | 'far' = coverage > 0.15 ? 'near' : 'far';
+              const distanceStr = coverage > 0.3 ? '<1m' : coverage > 0.1 ? '2m' : '>3m';
+
+              return {
+                label: r.label,
+                direction,
+                proximity,
+                severity,
+                distance: distanceStr
+              };
+            });
+
+            // 4. Update State & Feedback
+            if (mappedObjects.length > 0) {
+              setDetections(mappedObjects);
+
+              const critical = mappedObjects.find(o => o.severity === 'high' && o.proximity === 'near');
+              const now = Date.now();
+
+              if (critical) {
+                const feedback = `${critical.label} ahead!`;
+
+                // Debounce Check: Don't repeat same critical alert within 8 seconds
+                const shouldSpeak = !lastSpokenRef.current ||
+                  lastSpokenRef.current.text !== feedback ||
+                  (now - lastSpokenRef.current.time > 8000);
+
+                if (shouldSpeak && !window.speechSynthesis.speaking) {
+                  setInstruction(feedback.toUpperCase());
+                  const pan = critical.direction === 'left' ? -1 : critical.direction === 'right' ? 1 : 0;
+                  spatialAudio.playDirectionalPing(pan);
+                  spatialAudio.speak(feedback, pan);
+                  lastSpokenRef.current = { text: feedback, time: now };
+                }
+              } else if (!window.speechSynthesis.speaking && Math.random() > 0.85) {
+                // Occasional update
+                setInstruction(`${mappedObjects[0].label.toUpperCase()} DETECTED`);
               }
-
-              spatialAudio.speak(feedback, pan);
-              setInstruction(feedback.toUpperCase());
+            } else {
+              setDetections([]);
+              setInstruction("PATH CLEAR");
+              // Reset debounce if path is clear for a while
+              if (lastSpokenRef.current && (Date.now() - lastSpokenRef.current.time > 5000)) {
+                lastSpokenRef.current = null;
+              }
             }
-          } else if (data && data.objects.length === 0) {
-            // Successful Scan, but empty
-            setDetections([]);
-            setInstruction("PATH CLEAR");
-          } else {
-            // NULL means error
-            setDetections([]);
-            setInstruction("CONNECTION ERROR - RETRYING");
+
+          } catch (e) {
+            // console.warn("Detection skipped", e);
           }
         }
-        setIsAnalyzing(false);
       }
-    }, 6000); // 6-second cycle to stay within API rate limits
+    }, 1500); // 1.5s Interval
 
     return () => clearInterval(interval);
   }, [isAnalyzing, isListening]);
@@ -258,7 +303,7 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
         ctx.restore();
       });
 
-      // Central Path Vector
+      // Central Path Vector (Visual Gimmick)
       ctx.beginPath();
       ctx.setLineDash([20, 15]);
       ctx.moveTo(w / 2, h * 0.45);
@@ -352,26 +397,7 @@ const CameraAssistant: React.FC<CameraAssistantProps> = ({ onStop, preferences }
         </button>
       </div>
 
-      <div className="absolute top-32 right-4 z-30 flex flex-col items-end space-y-2 pointer-events-none">
-        {detections.map((d, i) => (
-          <div key={i} className="bg-black/70 backdrop-blur-md text-white px-4 py-2 rounded-xl border border-white/20 flex items-center space-x-2 animate-fadeIn">
-            <span className={`w-3 h-3 rounded-full ${d.severity === 'high' ? 'bg-red-500' : d.severity === 'medium' ? 'bg-amber-500' : 'bg-blue-500'}`} />
-            <span className="font-bold text-sm uppercase">{d.label}</span>
-            <span className="text-xs text-slate-300">({d.distance || '?'})</span>
-          </div>
-        ))}
-        {detections.length === 0 && (
-          <div className="bg-black/50 text-slate-400 px-3 py-1 rounded-lg text-xs">No objects detected</div>
-        )}
-      </div>
-
-      <div className="absolute bottom-6 left-0 w-full text-center z-30 pointer-events-none">
-        <div className="inline-block px-8 py-2 bg-black/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-lg">
-          <p className="text-white/60 text-[10px] font-black tracking-[0.8em] uppercase italic">
-            SafePath AI Vision Core 4.0
-          </p>
-        </div>
-      </div>
+      {/* Removed the bottom text footer as requested */}
     </div>
   );
 };

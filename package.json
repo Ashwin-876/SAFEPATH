@@ -13,6 +13,7 @@
     "@netlify/functions": "^5.1.2",
     "@types/leaflet": "^1.9.21",
     "agora-rtc-sdk-ng": "^4.24.2",
+    "bytez.js": "^3.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

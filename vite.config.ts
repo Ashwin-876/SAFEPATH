@@ -9,7 +9,11 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: '0.0.0.0',
       proxy: {
-        '/.netlify': 'http://localhost:3001'
+        '/.netlify': {
+          target: 'http://127.0.0.1:3001',
+          changeOrigin: true,
+          secure: false,
+        }
       },
     },
     plugins: [react()],

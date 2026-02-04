@@ -4,31 +4,31 @@
 /* === FUTURISTIC HIGH-CONTRAST THEME === */
 :root {
     /* Backgrounds: Deep Space / Cyberpunk */
-    --bg-app: #020617;
-    /* Slate 950 */
-    --bg-card: rgba(30, 41, 59, 0.7);
-    /* Glassy Slate 800 */
-    --glass-border: rgba(255, 255, 255, 0.12);
+    --bg-app: #000000;
+    /* Pure Black */
+    --bg-card: rgba(18, 18, 18, 0.7);
+    /* Glassy Dark */
+    --glass-border: rgba(255, 255, 255, 0.15);
 
     /* Text */
     --text-primary: #ffffff;
-    --text-secondary: #94a3b8;
-    /* Slate 400 */
+    --text-secondary: #9ca3af;
+    /* Gray 400 */
     --text-accent: #38bdf8;
     /* Sky 400 */
 
     /* Brand Colors (Neon) */
     --accent-blue: #3b82f6;
     --neon-blue: #60a5fa;
-    --neon-blue-glow: 0 0 20px rgba(59, 130, 246, 0.5);
+    --neon-blue-glow: 0 0 20px rgba(59, 130, 246, 0.6);
 
     --accent-green: #22c55e;
     --neon-green: #4ade80;
-    --neon-green-glow: 0 0 20px rgba(34, 197, 94, 0.5);
+    --neon-green-glow: 0 0 20px rgba(34, 197, 94, 0.6);
 
     --accent-red: #ef4444;
     --neon-red: #f87171;
-    --neon-red-glow: 0 0 20px rgba(239, 68, 68, 0.6);
+    --neon-red-glow: 0 0 20px rgba(239, 68, 68, 0.7);
 
     --font-heading: 'Inter', sans-serif;
     --font-body: 'Source Sans Pro', sans-serif;
@@ -38,8 +38,8 @@
 body {
     background-color: var(--bg-app);
     background-image:
-        radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+        radial-gradient(circle at 15% 50%, rgba(30, 30, 30, 0.3), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(30, 30, 30, 0.3), transparent 25%);
     color: var(--text-primary);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
@@ -66,30 +66,30 @@ h6 {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
 .glass-panel-hover:hover {
-    background: rgba(30, 41, 59, 0.85);
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.5);
+    background: rgba(40, 40, 40, 0.85);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.7);
 }
 
 /* 2. Neon Text */
 .text-glow {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 
 .text-glow-blue {
-    text-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+    text-shadow: 0 0 12px rgba(59, 130, 246, 0.7);
 }
 
 .text-glow-green {
-    text-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+    text-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
 }
 
 .text-glow-red {
-    text-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    text-shadow: 0 0 12px rgba(239, 68, 68, 0.9);
 }
 
 /* 3. Custom Scrollbar */
@@ -99,16 +99,16 @@ h6 {
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: #000;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: #4b5563;
     border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    background: #6b7280;
 }
 
 /* 4. Animations */
@@ -145,9 +145,9 @@ h6 {
     left: 0;
     right: 0;
     height: 100%;
-    background: linear-gradient(to bottom, transparent 40%, rgba(56, 189, 248, 0.2) 50%, transparent 60%);
+    background: linear-gradient(to bottom, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
     background-size: 100% 3px;
-    animation: scanline 2s linear infinite;
+    animation: scanline 2.5s linear infinite;
     pointer-events: none;
     z-index: 10;
 }
@@ -169,8 +169,8 @@ h6 {
 
 /* Force backgrounds to consistent dark theme if they are 'white' */
 .bg-white {
-    background-color: #1e293b !important;
-    /* Force Slate 800 */
+    background-color: #121212 !important;
+    /* Force Near Black */
     border: 1px solid var(--glass-border);
 }
 
@@ -183,7 +183,7 @@ h6 {
 
 /* Map Overrides for Dark Mode */
 .leaflet-container {
-    background: #0f172a !important;
+    background: #000000 !important;
     font-family: var(--font-body) !important;
 }
 
@@ -192,9 +192,9 @@ h6 {
 }
 
 .leaflet-control-zoom a {
-    background-color: #1e293b !important;
+    background-color: #121212 !important;
     color: #fff !important;
-    border: 1px solid #334155 !important;
+    border: 1px solid #333 !important;
 }
 
 /* Button Focus States for Accessibility */
