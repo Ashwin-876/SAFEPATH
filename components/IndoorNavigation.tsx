@@ -453,19 +453,19 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="h-full bg-black text-white relative overflow-hidden flex flex-col">
+    <div className="h-full bg-black relative overflow-hidden flex flex-col">
       <canvas ref={canvasRef} className="hidden" />
 
       {/* Top HUD */}
-      <div className="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent">
+      <div className="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-start bg-gradient-to-b from-black/90 via-black/50 to-transparent">
         <div>
-          <div className="flex items-center space-x-2">
-            <span className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></span>
+          <div className="flex items-center space-x-2 mb-1">
+            <span className={`w-2 h-2 rounded-full shadow-[0_0_10px_currentColor] ${isListening ? 'bg-red-500 text-red-500 animate-pulse' : 'bg-emerald-500 text-emerald-500'}`}></span>
             <span className="text-xs font-black uppercase tracking-widest text-slate-300">
               {isListening ? 'Listening...' : 'Live Navigation'}
             </span>
           </div>
-          <h2 className="text-2xl font-black drop-shadow-md mt-1">
+          <h2 className="text-3xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1 text-white">
             {currentLocation ? currentLocation.name : 'Locating...'}
           </h2>
         </div>
@@ -473,32 +473,35 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
 
       {/* Feedback Overlay - Enhanced Visuals */}
       {feedbackMessage && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-8 bg-black/60 backdrop-blur-sm transition-all animate-fade-in-up">
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-8 bg-black/60 backdrop-blur-md transition-all animate-fade-in">
           <div className={`
-                p-8 rounded-[2rem] shadow-2xl border-4 text-center transform transition-transform scale-110
-                flex flex-col items-center gap-4 max-w-sm w-full
+                p-8 rounded-[2rem] shadow-2xl border flex flex-col items-center gap-6 max-w-sm w-full text-center relative overflow-hidden
                 ${feedbackMessage.toLowerCase().includes('caregiver') || feedbackMessage.toLowerCase().includes('stop')
-              ? 'bg-red-600 border-red-400 text-white animate-pulse'
-              : 'bg-blue-600 border-blue-400 text-white'}
+              ? 'bg-red-900/40 border-red-500 text-white shadow-[0_0_50px_rgba(239,68,68,0.4)]'
+              : 'bg-blue-900/40 border-blue-400 text-white shadow-[0_0_50px_rgba(59,130,246,0.3)]'}
               `}>
+
+            {/* Animated Background Glow */}
+            <div className={`absolute inset-0 opacity-20 animate-pulse ${feedbackMessage.toLowerCase().includes('caregiver') ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+
             {/* Icon */}
-            <div className="bg-white/20 p-4 rounded-full">
+            <div className="bg-white/10 p-5 rounded-full backdrop-blur-xl border border-white/20 relative z-10">
               {(feedbackMessage.toLowerCase().includes('caregiver') || feedbackMessage.toLowerCase().includes('stop')) ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               )}
             </div>
 
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">
+            <div className="relative z-10">
+              <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-2">
                 {feedbackMessage.toLowerCase().includes('caregiver') ? 'Incoming Alert' : 'Command Received'}
               </p>
-              <h3 className="text-2xl font-black leading-tight">
+              <h3 className="text-2xl font-black leading-tight tracking-tight">
                 {feedbackMessage.replace('Caregiver says: ', '')}
               </h3>
             </div>
@@ -513,14 +516,18 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
           autoPlay
           playsInline
           muted
-          className="absolute inset-0 w-full h-full object-cover opacity-90"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
         />
+
+        {/* AR Scan Grid Overlay */}
+        <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
+        <div className="absolute inset-0 pointer-events-none border-[20px] border-black/20 rounded-[2rem]"></div>
 
         {/* AR Overlays */}
         {detectedObjects.map(obj => (
           <div key={obj.id}
-            className={`absolute border-2 rounded-lg flex flex-col items-center justify-center
-                    ${obj.type === 'DANGER' ? 'border-red-500 bg-red-500/10' : 'border-amber-400 bg-amber-400/10'}
+            className={`absolute border-2 rounded-lg flex flex-col items-center justify-center backdrop-blur-sm
+                    ${obj.type === 'DANGER' ? 'border-red-500 bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'border-amber-400 bg-amber-400/20 shadow-[0_0_20px_rgba(251,191,36,0.5)]'}
                 `}
             style={{
               left: `${obj.x}%`, top: `${obj.y}%`,
@@ -528,7 +535,7 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
               transition: 'all 0.5s ease-out'
             }}
           >
-            <span className={`px-2 py-1 text-[10px] font-black uppercase rounded mb-auto -mt-3
+            <span className={`px-2 py-1 text-[10px] font-black uppercase rounded mb-auto -mt-3 shadow-md
                     ${obj.type === 'DANGER' ? 'bg-red-600 text-white' : 'bg-amber-400 text-black'}
                  `}>
               {obj.label}
@@ -537,9 +544,9 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
         ))}
 
         {currentLocation && currentLocation.nextId && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none">
             <div className="animate-bounce">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-32 w-32 text-white drop-shadow-[0_0_25px_rgba(59,130,246,0.8)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-40 w-40 text-blue-500 drop-shadow-[0_0_35px_rgba(59,130,246,1)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
             </div>
@@ -548,33 +555,39 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
 
         {!currentLocation && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-64 h-64 border-2 border-white/50 rounded-3xl relative">
-              <div className="absolute inset-0 border-2 border-blue-500 rounded-3xl animate-pulse"></div>
+            <div className="w-72 h-72 border border-white/30 rounded-3xl relative backdrop-blur-[2px]">
+              <div className="absolute inset-0 border-2 border-blue-500/50 rounded-3xl animate-pulse"></div>
+              {/* Corner Accents */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-xl"></div>
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-xl"></div>
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-xl"></div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-xl"></div>
+
               <div className="absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_15px_#3b82f6] animate-scan z-10"></div>
-              <p className="absolute -bottom-8 w-full text-center font-bold text-blue-200">Scan QR Code</p>
+              <p className="absolute -bottom-10 w-full text-center font-bold text-white text-lg tracking-widest uppercase text-glow-blue">Align QR Marker</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Footer / Instructions */}
-      <div className="bg-slate-900 border-t border-slate-800 p-6 space-y-4">
-        <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center space-x-4">
-          <div className="bg-blue-600 w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/30">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+      <div className="bg-slate-950 border-t border-white/10 p-6 space-y-4 relative z-20">
+        <div className="glass-panel p-5 rounded-2xl flex items-center space-x-4">
+          <div className="bg-blue-600/20 border border-blue-500/30 w-14 h-14 rounded-full flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </div>
           <div>
-            <span className="block text-xs font-bold text-blue-400 uppercase tracking-wider">Next Step</span>
-            <span className="block text-lg font-bold leading-tight">{instruction}</span>
+            <span className="block text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Next Step</span>
+            <span className="block text-white text-xl font-bold leading-tight">{instruction}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={repeatInstruction}
-            className="py-4 bg-slate-700 text-white rounded-xl font-bold active:scale-95 transition-transform"
+            className="py-4 bg-slate-800/50 border border-white/5 text-slate-300 rounded-xl font-bold active:scale-95 transition-all hover:bg-slate-800 hover:text-white hover:border-white/20"
           >
             Repeat Voice
           </button>
@@ -589,22 +602,33 @@ const IndoorNavigation: React.FC<IndoorNavigationProps> = ({ onBack }) => {
                 setupVoiceRecognition();
               }
             }}
-            className={`py-4 rounded-xl font-bold active:scale-95 transition-all flex items-center justify-center gap-2
-                ${isListening ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-700 text-white'}
+            className={`py-4 rounded-xl font-bold active:scale-95 transition-all flex items-center justify-center gap-2 border
+                ${isListening
+                ? 'bg-red-600/20 border-red-500 text-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+                : 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/20 hover:bg-blue-500'}
             `}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-            </svg>
-            {isListening ? 'Listening' : 'Voice Cmd'}
+            {isListening ? (
+              <>
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                Listening
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                </svg>
+                Voice Cmd
+              </>
+            )}
           </button>
         </div>
 
         <button
           onClick={onBack}
-          className="w-full py-4 bg-slate-800 text-slate-300 font-bold rounded-xl active:scale-95 transition-all hover:bg-slate-700"
+          className="w-full py-4 text-slate-500 font-bold rounded-xl active:scale-95 transition-all hover:text-white uppercase tracking-widest text-xs"
         >
-          End Navigation
+          Exit Navigation
         </button>
       </div>
 

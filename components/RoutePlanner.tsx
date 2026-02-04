@@ -69,7 +69,8 @@ const RoutePlanner: React.FC<RoutePlannerProps> = ({
     setIsSearching(false);
 
     if (result.length > 0) {
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(`Found ${result.length} route options. The first is ${result[0].duration} long.`));
+      const msg = `Found ${result.length} route options. The first is ${result[0].duration} long.`;
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
     }
   };
 
@@ -78,191 +79,180 @@ const RoutePlanner: React.FC<RoutePlannerProps> = ({
   };
 
   return (
-    <div className="min-h-full p-4 sm:p-8 space-y-8 max-w-4xl mx-auto pb-40 relative">
-      {/* Top Section: Header & GPS Status */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight uppercase italic flex items-center">
-            <span className="bg-blue-600 text-white p-2 rounded-xl mr-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              </svg>
-            </span>
-            Plan Journey
-          </h2>
-          <p className="text-slate-500 font-bold mt-1 text-lg">SafePath AI Navigation</p>
+    <div className="min-h-full p-6 sm:p-8 space-y-8 max-w-5xl mx-auto pb-40">
+
+      {/* Header */}
+      <div className="flex items-center space-x-4 mb-4">
+        <div className="bg-blue-600/20 p-3 rounded-full border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.806-.984l-4.647-2.324A1 1 0 0115 5m-6-3l-4.553 2.223A1 1 0 003 5.318V16.634a1 1 0 00.553.894L9 20M15 4.318l-4.553 2.223A1 1 0 009 7.634V18.95a1 1 0 00.957.947l4.59-2.296" />
+          </svg>
         </div>
-
-
+        <div>
+          <h2 className="text-3xl font-black text-white tracking-wide uppercase text-glow-blue">Journey Planner</h2>
+          <p className="text-blue-300/60 font-medium text-sm tracking-widest uppercase">AI-Optimized Routing</p>
+        </div>
       </div>
 
-      {/* Destination Search Section */}
-      <section className={`bg-white p-2 rounded-[2.5rem] shadow-2xl border-2 transition-all relative ${isListening ? 'border-red-500 ring-4 ring-red-100' : 'border-slate-100 focus-within:border-blue-500'}`}>
+      {/* Search Input */}
+      <section className={`glass-panel p-2 rounded-[2rem] transition-all relative group
+         ${isListening ? 'border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]' : 'border-white/10 focus-within:border-blue-500 focus-within:shadow-[0_0_20px_rgba(59,130,246,0.3)]'}
+      `}>
         <form onSubmit={handleSearch} className="flex items-center">
           <input
             type="text"
-            placeholder={isListening ? "Listening..." : "Search Destination..."}
+            placeholder={isListening ? "Listening..." : "Where to?"}
             value={isListening ? interimText : destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="flex-1 p-6 text-2xl font-bold rounded-l-[2rem] border-none focus:ring-0 placeholder:text-slate-300 bg-transparent"
+            className="flex-1 bg-transparent p-6 text-2xl font-bold text-white placeholder-slate-500 border-none focus:ring-0 outline-none w-full"
             aria-label="Enter destination"
           />
+
           <div className="flex items-center space-x-2 pr-2">
             <button
               type="button"
               onClick={handleVoiceInput}
               disabled={isListening}
-              className={`p-5 rounded-full transition-all group relative ${isListening ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-              aria-label="Voice Input"
+              className={`p-4 rounded-full transition-all relative overflow-hidden group/mic
+                ${isListening
+                  ? 'bg-red-600/20 text-red-500 border border-red-500/50'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'}
+              `}
             >
-              {isListening && <span className="absolute inset-0 rounded-full bg-red-600 animate-ping opacity-25"></span>}
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 transition-transform ${isListening ? 'scale-110' : 'group-active:scale-90'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              {isListening && <div className="absolute inset-0 bg-red-500/20 animate-ping rounded-full"></div>}
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 relative z-10 ${isListening ? 'animate-pulse' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
             </button>
+
             <button
               type="submit"
               disabled={isSearching || isConfirming || isListening}
-              className="p-5 bg-blue-600 text-white rounded-[1.8rem] shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center space-x-2 min-w-[150px] justify-center"
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-[1.5rem] font-bold uppercase tracking-widest shadow-lg hover:shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all text-sm disabled:opacity-50 disabled:pointer-events-none"
             >
               {isSearching || isConfirming ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span className="font-black uppercase text-xs tracking-tighter">
-                    {isConfirming ? 'Confirming...' : 'Routing...'}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Calc...</span>
                 </div>
               ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <span className="font-black uppercase tracking-tight">Go</span>
-                </>
+                "Go"
               )}
             </button>
           </div>
         </form>
       </section>
 
-      {/* Results Section */}
-      <div className="grid grid-cols-1 gap-6">
+      {/* Results Area */}
+      <div className="space-y-4">
         {isConfirming ? (
-          <div className="flex flex-col items-center justify-center p-20 space-y-6 bg-white/50 rounded-[3rem] border-4 border-dashed border-blue-100">
-            <div className="relative flex h-24 w-24">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-20"></span>
-              <div className="relative m-auto w-16 h-16 border-8 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="glass-panel p-12 rounded-[2rem] flex flex-col items-center justify-center text-center space-y-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full animate-pulse"></div>
+              <div className="relative w-20 h-20 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">Locating Destination</p>
-              <p className="text-slate-500 font-bold mt-2">Verifying "{destination}" coordinates...</p>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-2">Locating Target</h3>
+              <p className="text-blue-200/60 font-mono text-sm tracking-wider">TRIANGULATING COORDINATES...</p>
             </div>
           </div>
         ) : isSearching ? (
-          <div className="flex flex-col items-center justify-center p-20 space-y-6 bg-white/50 rounded-[3rem] border-4 border-dashed border-emerald-100 relative overflow-hidden">
-            <div className="absolute top-4 right-8">
-              <span className="bg-emerald-600 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
-                Smart Routing Active
-              </span>
+          <div className="glass-panel p-12 rounded-[2rem] flex flex-col items-center justify-center text-center space-y-6 border-emerald-500/30">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full animate-pulse"></div>
+              <div className="relative w-20 h-20 border-4 border-emerald-500/50 border-t-emerald-400 rounded-full animate-spin-slow"></div>
             </div>
-            <div className="relative flex h-24 w-24">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-20"></span>
-              <div className="relative m-auto w-16 h-16 border-8 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-black text-slate-800 italic uppercase tracking-tighter">Calculating SafePath</p>
-              <p className="text-slate-500 font-bold mt-2">Analyzing terrain & accessibility accessibility for your profile...</p>
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-2 text-glow-green">Optimizing SafePath</h3>
+              <p className="text-emerald-200/60 font-mono text-sm tracking-wider">ANALYZING ACCESSIBILITY DATA...</p>
             </div>
           </div>
         ) : routes.length > 0 ? (
-          <div className="space-y-6">
-            <h3 className="text-xl font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Available Routes</h3>
-            {routes.map((route) => (
-              <button
-                key={route.id}
-                onClick={onStartNavigation}
-                className={`w-full text-left bg-white p-8 rounded-[3rem] shadow-xl border-4 transition-all flex items-center group active:scale-[0.98] ${route.type === 'SafePath' ? 'border-emerald-100 hover:border-emerald-500' : 'border-slate-50 hover:border-blue-500'
-                  }`}
-              >
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm ${route.type === 'SafePath' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white'
-                        }`}>
-                        {route.type}
+          <>
+            <h3 className="text-slate-400 font-bold uppercase tracking-widest text-sm ml-2">Recommended Routes</h3>
+            <div className="space-y-4">
+              {routes.map((route) => (
+                <button
+                  key={route.id}
+                  onClick={onStartNavigation}
+                  className={`w-full text-left glass-panel p-6 rounded-[2rem] transition-all group hover:bg-white/5 hover:border-blue-400/50 active:scale-[0.98] relative overflow-hidden
+                    ${route.type === 'SafePath' ? 'border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : ''}
+                  `}
+                >
+                  {route.type === 'SafePath' && (
+                    <div className="absolute top-0 right-0 p-4">
+                      <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md">
+                        Recommended
                       </span>
-                      {route.type === 'SafePath' && (
-                        <span className="flex items-center text-emerald-600 font-black text-xs uppercase tracking-widest">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          Verified Accessible
-                        </span>
-                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-black text-slate-900 leading-none">{route.duration}</p>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{route.distance}</p>
+                  )}
+
+                  <div className="flex flex-col gap-4 relative z-10">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className={`inline-block px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mb-2
+                            ${route.type === 'SafePath' ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-slate-300'}
+                          `}>
+                          {route.type}
+                        </div>
+                        <h4 className="text-2xl font-bold text-white group-hover:text-glow-blue transition-all">{route.desc}</h4>
+                      </div>
+                      <div className="text-right mt-8">
+                        <div className="text-4xl font-black text-white leading-none tracking-tight">{route.duration}</div>
+                        <div className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">{route.distance}</div>
+                      </div>
+                    </div>
+
+                    {/* Accessibility Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                        <span className="text-slate-400">Accessibility Score</span>
+                        <span className={route.accessibilityScore > 80 ? 'text-emerald-400' : 'text-blue-400'}>{route.accessibilityScore}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_currentColor]
+                             ${route.accessibilityScore > 80 ? 'bg-emerald-500 text-emerald-500' : 'bg-blue-500 text-blue-500'}
+                           `}
+                          style={{ width: `${route.accessibilityScore}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
-
-                  <h4 className="text-2xl font-bold text-slate-800 leading-tight pr-8">{route.desc}</h4>
-
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner">
-                      <div
-                        className={`h-full rounded-full transition-all duration-1000 ${route.accessibilityScore > 80 ? 'bg-emerald-500' : 'bg-blue-500'
-                          }`}
-                        style={{ width: `${route.accessibilityScore}%` }}
-                      ></div>
-                    </div>
-                    <span className="font-black text-slate-700 text-sm whitespace-nowrap">{route.accessibilityScore}% Accessible</span>
-                  </div>
-                </div>
-
-                <div className="ml-6 bg-slate-50 p-4 rounded-3xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          </>
         ) : (
           destination && !isSearching && (
-            <div className="text-center p-20 bg-white rounded-[3rem] border-4 border-dashed border-slate-100">
-              <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div className="glass-panel p-10 rounded-[2rem] text-center border-dashed border-slate-700">
+              <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <p className="text-2xl font-black text-slate-400 italic">No routes found for this destination.</p>
-              <button onClick={() => setDestination('')} className="mt-4 text-blue-600 font-black uppercase tracking-widest text-sm hover:underline">Try another search</button>
+              <p className="text-slate-400 font-medium">No results found for "{destination}"</p>
+              <button onClick={() => setDestination('')} className="mt-4 text-blue-400 text-sm font-bold uppercase tracking-widest hover:text-blue-300">Clear Search</button>
             </div>
           )
         )}
       </div>
 
-
-
-      {/* Footer Info */}
-      <div className="bg-slate-900 text-white p-8 rounded-[3rem] space-y-4 shadow-2xl overflow-hidden relative group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 blur-3xl rounded-full -mr-10 -mt-10 group-hover:bg-blue-600/40 transition-colors"></div>
-        <h3 className="text-2xl font-black flex items-center tracking-tight relative z-10">
-          <span className="bg-blue-500/20 p-2 rounded-lg mr-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </span>
-          Smart Routing Active
-        </h3>
-        <p className="text-lg text-white/60 font-medium leading-relaxed relative z-10">
-          SafePath AI automatically filters routes based on your profile. We are currently prioritizing
-          <span className="text-blue-400 font-bold ml-1">
-            {preferences?.avoidStairs ? 'ramps/elevators' : 'the shortest accessible path'}
-          </span>.
-        </p>
+      {/* Info Footer */}
+      <div className="glass-panel p-6 rounded-3xl flex items-start gap-4">
+        <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-1">Smart Preferences</h4>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Routes are automatically filtered to prioritize <span className="text-white font-semibold">{preferences?.avoidStairs ? 'ramps & elevators' : 'speed'}</span> based on your settings.
+          </p>
+        </div>
       </div>
+
     </div>
   );
 };

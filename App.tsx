@@ -214,7 +214,7 @@ const App: React.FC = () => {
   const isNavigableScreen = currentState === NavState.NAVIGATING || currentState === NavState.INDOOR || currentState === NavState.EMERGENCY;
 
   return (
-    <div className="h-screen flex flex-col bg-[#f8fafc] relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-transparent relative overflow-hidden">
       {/* Persistent GPS Indicator Overlay (Hidden during specific states to declutter) */}
 
 
@@ -259,10 +259,11 @@ const App: React.FC = () => {
 
                 <button
                   onClick={() => navigateTo(NavState.EMERGENCY)}
-                  className="fixed bottom-6 right-6 w-24 h-24 bg-[#dc2626] text-white rounded-full shadow-[0_15px_35px_rgba(220,38,38,0.4)] flex items-center justify-center hover:bg-red-700 active:scale-90 transition-all z-50 border-[6px] border-white"
+                  className="fixed bottom-6 right-6 w-20 h-20 bg-red-600/90 backdrop-blur-md text-white rounded-full shadow-[0_0_40px_rgba(220,38,38,0.5)] flex items-center justify-center hover:bg-red-500 hover:scale-110 active:scale-90 transition-all z-50 border-4 border-red-400 group"
                   aria-label="Activate Emergency Assistance"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="absolute inset-0 rounded-full bg-red-500 opacity-20 animate-ping"></div>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </button>
