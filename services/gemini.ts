@@ -1,5 +1,6 @@
 
-const API_KEY = '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';
+
+const API_KEY = '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';
 const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-2.0-flash-001';
 
