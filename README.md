@@ -57,4 +57,4 @@ To stop the running application:
 3.  Confirm termination if prompted (type `y` and press Enter).
 
 ---
-*Built with React, Vite, TailwindCSS, and Google Gemini AI.*
+*Built with React, Vite, TailwindCSS, and  Api.*
