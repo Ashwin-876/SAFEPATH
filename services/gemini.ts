@@ -1,6 +1,6 @@
 
 
-const API_KEY = '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';
+const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = 'google/gemini-2.0-flash-001';
 
@@ -23,11 +23,6 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
       "HTTP-Referer": "https://safepathtrack.netlify.app",
       "X-Title": "SafePath AI Tracking",
     };
-
-    // DEBUG: Check key prefix
-    if (!API_KEY.startsWith("sk-or-v1")) {
-      console.error("INVALID API KEY FORMAT. Must start with sk-or-v1");
-    }
 
     const response = await fetch(BASE_URL, {
       method: "POST",
@@ -78,8 +73,6 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
       console.error("SafePath Error: No content in response", data);
       return null;
     }
-
-    console.log("SafePath Raw Content:", content); // DEBUG
 
     const cleanContent = content.replace(/```json\n?|\n?```/g, "").trim();
     return JSON.parse(cleanContent) as DetailedAnalysis;
