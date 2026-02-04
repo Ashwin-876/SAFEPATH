@@ -13,7 +13,7 @@ const PORT = 3001;
 app.use(cors()); // Allow all for local dev
 app.use(express.json({ limit: '50mb' }));
 
-app.post("/api/gemini", async (req, res) => {
+app.post("/.netlify/functions/gemini", async (req, res) => {
     try {
         // SECURE: Server-side environment variable
         const apiKey = process.env.OPENROUTER_API_KEY;

@@ -1,7 +1,7 @@
 
 
 // Relative path to support both Local Proxy and Netlify Functions
-const BASE_URL = '/api/gemini';
+const BASE_URL = '/.netlify/functions/gemini';
 const MODEL = 'google/gemini-2.0-flash-001';
 
 export interface DetailedAnalysis {

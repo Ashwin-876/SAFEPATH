@@ -1,5 +1,4 @@
 
-import fetch from 'node-fetch';
 
 export const handler = async function (event, context) {
     // Only allow POST
