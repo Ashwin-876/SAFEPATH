@@ -1,6 +1,7 @@
 
-const GOOGLE_API_KEY = 'AIzaSyC0M41sBzeyaBaRk_y_FWnbKclqwXLBHa4';
-const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const API_KEY = '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';
+const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const MODEL = 'google/gemini-2.0-flash-001';
 
 export interface DetailedAnalysis {
   objects: Array<{
@@ -15,54 +16,58 @@ export interface DetailedAnalysis {
 
 export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysis | null> => {
   try {
-    const response = await fetch(`${BASE_URL}?key=${GOOGLE_API_KEY}`, {
+    const response = await fetch(BASE_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://safepathtrack.netlify.app",
+        "X-Title": "SafePath AI Tracking",
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            {
-              text: `Act as a high-precision spatial assistant for a visually impaired person. 
-              Detect ALL visible objects that might affect navigation.
-              Return ONLY a valid JSON object with this structure:
+        model: MODEL,
+        messages: [
+          {
+            role: "user",
+            content: [
               {
-                "objects": [
-                  { "label": "string", "direction": "left|center|right", "proximity": "near|far", "severity": "low|medium|high", "distance": "string" }
-                ],
-                "sceneSummary": "short summary phrase"
-              }`
-            },
-            {
-              inline_data: {
-                mime_type: "image/jpeg",
-                data: base64Image
+                type: "text",
+                text: `Act as a high-precision spatial assistant for a visually impaired person. 
+                Detect ALL visible objects that might affect navigation.
+                Return ONLY a valid JSON object:
+                {
+                  "objects": [
+                    { "label": "string", "direction": "left|center|right", "proximity": "near|far", "severity": "low|medium|high", "distance": "string" }
+                  ],
+                  "sceneSummary": "short summary phrase"
+                }`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
+                }
               }
-            }
-          ]
-        }],
-        generationConfig: {
-          response_mime_type: "application/json"
-        }
+            ]
+          }
+        ],
+        response_format: { type: "json_object" }
       })
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Google API Error:", response.status, errorText);
-      return null; // Handle 429 or other errors gracefully
+      const errorData = await response.json().catch(() => ({}));
+      console.error("OpenRouter API Error:", response.status, response.statusText, errorData);
+      return null;
     }
 
     const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = data.choices?.[0]?.message?.content;
 
     if (!content) return null;
 
-    // Clean potential markdown blocks just in case
     const cleanContent = content.replace(/```json\n?|\n?```/g, "").trim();
     return JSON.parse(cleanContent) as DetailedAnalysis;
-
   } catch (error) {
     console.error("Analysis Request Failed:", error);
     return null;
@@ -71,65 +76,128 @@ export const analyzeScene = async (base64Image: string): Promise<DetailedAnalysi
 
 export const askGeminiAboutImage = async (base64Image: string, question: string) => {
   try {
-    const response = await fetch(`${BASE_URL}?key=${GOOGLE_API_KEY}`, {
+    const response = await fetch(BASE_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://safepathtrack.netlify.app",
+        "X-Title": "SafePath AI Tracking",
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: `You are a assistant for a visually impaired person. Answer: "${question}". MAX 10 WORDS.` },
-            {
-              inline_data: {
-                mime_type: "image/jpeg",
-                data: base64Image
+        model: MODEL,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `You are a assistant for a visually impaired person. Answer: "${question}". MAX 10 WORDS.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
+                }
               }
-            }
-          ]
-        }]
+            ]
+          }
+        ]
       })
     });
-
     const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return content || "I couldn't identify that.";
+    return data.choices?.[0]?.message?.content || "I couldn't identify that.";
   } catch (error) {
     console.error("Gemini Q&A Error:", error);
     return "I couldn't identify that.";
   }
 };
 
+export const generateCaregiverBriefing = async (userName: string, status: string, recentObjects: string[]) => {
+  try {
+    const prompt = `Generate a 2-sentence safety briefing for a caregiver monitoring ${userName}. Status: ${status}. Detected: ${recentObjects.join(', ')}.`;
+    const response = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || "Monitoring active. Path currently safe.";
+  } catch (error) {
+    return "Monitoring active. Path currently safe.";
+  }
+};
+
+export const describeSurroundings = async (base64Image: string) => {
+  try {
+    const response = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Describe the environment layout briefly for a visually impaired person. Focus on floor paths."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Image}`
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || "Scanning failed.";
+  } catch (error) {
+    return "Scanning failed.";
+  }
+};
+
 export const generateSmartRoute = async (destination: string, preferences: any) => {
-  // Route generation doesn't use images, so keep simpler
   try {
     const fixedPrompt = `Generate 3 route options to ${destination}. Return JSON: { "routes": [{ "id": "string", "type": "SafePath|Fastest|Alternative", "duration": "string", "distance": "string", "accessibilityScore": number, "desc": "string" }] }`;
 
-    const response = await fetch(`${BASE_URL}?key=${GOOGLE_API_KEY}`, {
+    const response = await fetch(BASE_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: fixedPrompt }]
-        }],
-        generationConfig: {
-          response_mime_type: "application/json"
-        }
+        model: MODEL,
+        messages: [{ role: "user", content: fixedPrompt }],
+        response_format: { type: "json_object" }
       })
     });
 
     const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = data.choices?.[0]?.message?.content;
     const parsed = content ? JSON.parse(content.replace(/```json\n?|\n?```/g, "").trim()) : {};
 
     if (parsed.routes && parsed.routes.length > 0) {
       return parsed.routes;
     }
-    throw new Error("No routes");
+
+    throw new Error("No routes in response");
   } catch (error) {
-    console.error("Route generation failed:", error);
+    console.error("Route generation failed, using fallback:", error);
     return [
       {
         id: "rp-1",
@@ -140,36 +208,6 @@ export const generateSmartRoute = async (destination: string, preferences: any) 
         desc: "Main corridor with tactile paving."
       }
     ];
-  }
-}
-
-export const describeSurroundings = async (base64Image: string) => {
-  try {
-    const response = await fetch(`${BASE_URL}?key=${GOOGLE_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: "Describe the environment layout briefly for a visually impaired person. Focus on floor paths." },
-            {
-              inline_data: {
-                mime_type: "image/jpeg",
-                data: base64Image
-              }
-            }
-          ]
-        }]
-      })
-    });
-
-    const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return content || "Scanning failed.";
-  } catch (error) {
-    return "Scanning failed.";
   }
 }
 
